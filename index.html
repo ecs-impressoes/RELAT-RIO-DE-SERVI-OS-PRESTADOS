@@ -58,24 +58,29 @@
             resize: vertical;
             min-height: 80px;
         }
-        .foto-area {
+        .arquivo-area {
             margin: 20px 0;
             padding: 15px;
             border: 2px dashed #007bff;
             border-radius: 8px;
             text-align: center;
         }
-        .foto-area label {
+        .arquivo-area label {
             font-weight: bold;
             display: block;
             margin-bottom: 10px;
         }
-        #previewFoto {
+        #previewArquivo {
             max-width: 100%;
             max-height: 200px;
             margin-top: 10px;
             border-radius: 4px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        #nomeArquivo {
+            margin-top: 8px;
+            font-style: italic;
+            color: #555;
         }
         table {
             width: 100%;
@@ -97,7 +102,7 @@
             width: 100%;
             min-width: 150px;
         }
-        .item-qtd input, .item-valor input {
+        .item-valor input, .item-qtd input {
             width: 80px;
         }
         .item-total {
@@ -137,6 +142,12 @@
         .btn:hover {
             background-color: #0056b3;
         }
+        .btn-whatsapp {
+            background-color: #25D366;
+        }
+        .btn-whatsapp:hover {
+            background-color: #128C7E;
+        }
         .btn-imprimir {
             background-color: #28a745;
         }
@@ -161,7 +172,7 @@
             color: #777;
         }
         @media print {
-            .btn, .foto-area input, .btn-remover, .acoes {
+            .btn, .arquivo-area input, .btn-remover, .acoes {
                 display: none;
             }
             body { background: white; padding: 0; }
@@ -189,22 +200,25 @@
             </div>
         </div>
 
-        <!-- Anexo de foto -->
-        <div class="foto-area">
-            <label for="foto">📸 Anexar foto do serviço executado</label>
-            <input type="file" id="foto" accept="image/*">
+        <!-- Anexo de arquivo (qualquer formato) -->
+        <div class="arquivo-area">
+            <label for="anexo">📎 Anexar arquivo (foto, PDF, documento...)</label>
+            <input type="file" id="anexo" accept="*/*">
             <br>
-            <img id="previewFoto" src="#" alt="Pré-visualização" style="display: none;">
+            <div id="previewContainer">
+                <img id="previewImagem" src="#" alt="Pré-visualização" style="display: none; max-width: 100%; max-height: 200px; margin-top: 10px;">
+                <div id="nomeArquivo"></div>
+            </div>
         </div>
 
-        <!-- Tabela de serviços -->
+        <!-- Tabela de serviços (valor unitário antes da quantidade) -->
         <h3>🛠️ Itens / Serviços realizados</h3>
         <table id="tabelaServicos">
             <thead>
                 <tr>
                     <th>Descrição do serviço</th>
-                    <th>Quantidade</th>
                     <th>Valor unit. (R$)</th>
+                    <th>Quantidade</th>
                     <th>Total (R$)</th>
                     <th></th>
                 </tr>
@@ -212,8 +226,8 @@
             <tbody id="itensCorpo">
                 <tr class="linha-item">
                     <td class="item-descricao"><input type="text" placeholder="Ex.: Manutenção preventiva"></td>
-                    <td class="item-qtd"><input type="number" class="qtd" min="0" step="1" value="1"></td>
                     <td class="item-valor"><input type="number" class="valor" min="0" step="0.01" value="0.00"></td>
+                    <td class="item-qtd"><input type="number" class="qtd" min="0" step="1" value="1"></td>
                     <td class="item-total"><span class="total-linha">R$ 0,00</span></td>
                     <td><button class="btn-remover" onclick="removerLinha(this)">🗑️ Remover</button></td>
                 </tr>
@@ -222,7 +236,10 @@
 
         <div class="acoes">
             <button class="btn" onclick="adicionarLinha()">➕ Adicionar outro serviço</button>
-            <button class="btn btn-imprimir" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-whatsapp" onclick="enviarWhatsApp()">📲 Enviar WhatsApp</button>
+                <button class="btn btn-imprimir" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+            </div>
         </div>
 
         <!-- Total geral -->
@@ -249,13 +266,13 @@
 
         // Atualiza o total de uma linha específica
         function atualizarTotalLinha(linha) {
-            const qtdInput = linha.querySelector('.qtd');
             const valorInput = linha.querySelector('.valor');
+            const qtdInput = linha.querySelector('.qtd');
             const totalSpan = linha.querySelector('.total-linha');
 
-            const qtd = parseFloat(qtdInput.value) || 0;
             const valor = parseFloat(valorInput.value) || 0;
-            const total = qtd * valor;
+            const qtd = parseFloat(qtdInput.value) || 0;
+            const total = valor * qtd;
 
             totalSpan.textContent = formatarMoeda(total);
             return total;
@@ -278,23 +295,23 @@
             novaLinha.className = 'linha-item';
             novaLinha.innerHTML = `
                 <td class="item-descricao"><input type="text" placeholder="Ex.: Manutenção preventiva"></td>
-                <td class="item-qtd"><input type="number" class="qtd" min="0" step="1" value="1"></td>
                 <td class="item-valor"><input type="number" class="valor" min="0" step="0.01" value="0.00"></td>
+                <td class="item-qtd"><input type="number" class="qtd" min="0" step="1" value="1"></td>
                 <td class="item-total"><span class="total-linha">R$ 0,00</span></td>
                 <td><button class="btn-remover" onclick="removerLinha(this)">🗑️ Remover</button></td>
             `;
             tbody.appendChild(novaLinha);
 
             // Adiciona eventos aos novos inputs
-            const qtdInput = novaLinha.querySelector('.qtd');
             const valorInput = novaLinha.querySelector('.valor');
+            const qtdInput = novaLinha.querySelector('.qtd');
 
-            qtdInput.addEventListener('input', function() {
+            valorInput.addEventListener('input', function() {
                 atualizarTotalLinha(novaLinha);
                 recalcularTodos();
             });
 
-            valorInput.addEventListener('input', function() {
+            qtdInput.addEventListener('input', function() {
                 atualizarTotalLinha(novaLinha);
                 recalcularTodos();
             });
@@ -312,8 +329,8 @@
             if (linhas.length === 1) {
                 // Se for a única linha, apenas limpa os campos
                 linha.querySelector('.item-descricao input').value = '';
-                linha.querySelector('.qtd').value = 1;
                 linha.querySelector('.valor').value = 0.00;
+                linha.querySelector('.qtd').value = 1;
                 atualizarTotalLinha(linha);
                 recalcularTodos();
             } else {
@@ -323,35 +340,93 @@
             }
         }
 
-        // Preview da foto
-        document.getElementById('foto').addEventListener('change', function(event) {
+        // Pré-visualização de arquivo (imagem ou nome)
+        document.getElementById('anexo').addEventListener('change', function(event) {
             const file = event.target.files[0];
+            const previewImg = document.getElementById('previewImagem');
+            const nomeArquivo = document.getElementById('nomeArquivo');
+            
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const preview = document.getElementById('previewFoto');
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
+                // Exibe o nome do arquivo
+                nomeArquivo.textContent = `Arquivo: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                
+                // Se for imagem, tenta preview
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImg.src = e.target.result;
+                        previewImg.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    previewImg.style.display = 'none';
+                }
             } else {
-                document.getElementById('previewFoto').style.display = 'none';
+                previewImg.style.display = 'none';
+                nomeArquivo.textContent = '';
             }
         });
+
+        // Função para enviar via WhatsApp
+        function enviarWhatsApp() {
+            // Coletar dados
+            const empresa = document.getElementById('empresa').value || 'Não informado';
+            const data = document.getElementById('dataExecucao').value || 'Não informada';
+            const colaborador = document.getElementById('colaborador').value || 'Não informado';
+            const descricao = document.getElementById('descricaoGeral').value || 'Sem observações';
+            
+            // Montar lista de serviços
+            const linhas = document.querySelectorAll('.linha-item');
+            let servicosTexto = '';
+            let totalGeral = 0;
+            
+            linhas.forEach((linha, index) => {
+                const desc = linha.querySelector('.item-descricao input').value || 'Serviço sem descrição';
+                const valor = parseFloat(linha.querySelector('.valor').value) || 0;
+                const qtd = parseFloat(linha.querySelector('.qtd').value) || 0;
+                const total = valor * qtd;
+                totalGeral += total;
+                
+                servicosTexto += `\n${index+1}. ${desc} | Valor unit: R$ ${valor.toFixed(2)} | Qtd: ${qtd} | Total: R$ ${total.toFixed(2)}`;
+            });
+
+            const totalFormatado = totalGeral.toFixed(2).replace('.', ',');
+
+            // Montar mensagem
+            const mensagem = `📋 *RELATÓRIO DE SERVIÇOS* 📋
+Empresa: ${empresa}
+Data: ${data}
+Colaborador: ${colaborador}
+
+*Serviços realizados:*${servicosTexto}
+
+*Total Geral: R$ ${totalFormatado}*
+
+*Observações:* ${descricao}
+
+(Relatório gerado via sistema)`;
+
+            // Codificar para URL
+            const textoCodificado = encodeURIComponent(mensagem);
+            
+            // Número padrão (substitua pelo número desejado ou deixe vazio)
+            // Para abrir sem número definido, use "api.whatsapp.com/send?text="
+            window.open(`https://api.whatsapp.com/send?text=${textoCodificado}`, '_blank');
+        }
 
         // Inicialização: eventos para a primeira linha e recalcular
         window.onload = function() {
             const primeiraLinha = document.querySelector('.linha-item');
-            const qtdInicial = primeiraLinha.querySelector('.qtd');
             const valorInicial = primeiraLinha.querySelector('.valor');
+            const qtdInicial = primeiraLinha.querySelector('.qtd');
 
             function atualizarInicial() {
                 atualizarTotalLinha(primeiraLinha);
                 recalcularTodos();
             }
 
-            qtdInicial.addEventListener('input', atualizarInicial);
             valorInicial.addEventListener('input', atualizarInicial);
+            qtdInicial.addEventListener('input', atualizarInicial);
 
             // Executa uma vez para exibir os valores iniciais
             atualizarInicial();
