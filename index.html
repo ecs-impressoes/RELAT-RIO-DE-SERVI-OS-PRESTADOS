@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Serviços</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .info-geral {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .campo {
+            flex: 1 1 200px;
+        }
+        .campo label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 0.9rem;
+        }
+        .campo input, .campo textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .campo textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .foto-area {
+            margin: 20px 0;
+            padding: 15px;
+            border: 2px dashed #007bff;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .foto-area label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+        }
+        #previewFoto {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            font-weight: normal;
+        }
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: middle;
+        }
+        .item-descricao input {
+            width: 100%;
+            min-width: 150px;
+        }
+        .item-qtd input, .item-valor input {
+            width: 80px;
+        }
+        .item-total {
+            font-weight: bold;
+            text-align: center;
+        }
+        .btn-remover {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .btn-remover:hover {
+            background-color: #c82333;
+        }
+        .acoes {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn-imprimir {
+            background-color: #28a745;
+        }
+        .btn-imprimir:hover {
+            background-color: #218838;
+        }
+        .total-geral {
+            text-align: right;
+            font-size: 1.4rem;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+        .total-geral strong {
+            color: #007bff;
+        }
+        footer {
+            margin-top: 30px;
+            font-size: 0.8rem;
+            text-align: center;
+            color: #777;
+        }
+        @media print {
+            .btn, .foto-area input, .btn-remover, .acoes {
+                display: none;
+            }
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 RELATÓRIO DE SERVIÇOS PRESTADOS</h1>
+
+        <!-- Dados gerais -->
+        <div class="info-geral">
+            <div class="campo">
+                <label>Empresa / Cliente</label>
+                <input type="text" id="empresa" placeholder="Nome da empresa">
+            </div>
+            <div class="campo">
+                <label>Data de execução</label>
+                <input type="date" id="dataExecucao">
+            </div>
+            <div class="campo">
+                <label>Colaborador responsável</label>
+                <input type="text" id="colaborador" placeholder="Nome completo">
+            </div>
+        </div>
+
+        <!-- Anexo de foto -->
+        <div class="foto-area">
+            <label for="foto">📸 Anexar foto do serviço executado</label>
+            <input type="file" id="foto" accept="image/*">
+            <br>
+            <img id="previewFoto" src="#" alt="Pré-visualização" style="display: none;">
+        </div>
+
+        <!-- Tabela de serviços -->
+        <h3>🛠️ Itens / Serviços realizados</h3>
+        <table id="tabelaServicos">
+            <thead>
+                <tr>
+                    <th>Descrição do serviço</th>
+                    <th>Quantidade</th>
+                    <th>Valor unit. (R$)</th>
+                    <th>Total (R$)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="itensCorpo">
+                <tr class="linha-item">
+                    <td class="item-descricao"><input type="text" placeholder="Ex.: Manutenção preventiva"></td>
+                    <td class="item-qtd"><input type="number" class="qtd" min="0" step="1" value="1"></td>
+                    <td class="item-valor"><input type="number" class="valor" min="0" step="0.01" value="0.00"></td>
+                    <td class="item-total"><span class="total-linha">R$ 0,00</span></td>
+                    <td><button class="btn-remover" onclick="removerLinha(this)">🗑️ Remover</button></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="acoes">
+            <button class="btn" onclick="adicionarLinha()">➕ Adicionar outro serviço</button>
+            <button class="btn btn-imprimir" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+        </div>
+
+        <!-- Total geral -->
+        <div class="total-geral">
+            <strong>Total geral: R$ <span id="totalGeral">0,00</span></strong>
+        </div>
+
+        <!-- Descrição geral complementar -->
+        <div class="campo">
+            <label>📝 Descrição complementar (o que foi feito, observações)</label>
+            <textarea id="descricaoGeral" placeholder="Detalhes adicionais sobre os serviços..."></textarea>
+        </div>
+
+        <footer>
+            * Preencha todos os campos. Os valores totais são calculados automaticamente.
+        </footer>
+    </div>
+
+    <script>
+        // Função para formatar como moeda
+        function formatarMoeda(valor) {
+            return 'R$ ' + valor.toFixed(2).replace('.', ',');
+        }
+
+        // Atualiza o total de uma linha específica
+        function atualizarTotalLinha(linha) {
+            const qtdInput = linha.querySelector('.qtd');
+            const valorInput = linha.querySelector('.valor');
+            const totalSpan = linha.querySelector('.total-linha');
+
+            const qtd = parseFloat(qtdInput.value) || 0;
+            const valor = parseFloat(valorInput.value) || 0;
+            const total = qtd * valor;
+
+            totalSpan.textContent = formatarMoeda(total);
+            return total;
+        }
+
+        // Recalcula todos os totais (usado após remoção/edição)
+        function recalcularTodos() {
+            const linhas = document.querySelectorAll('.linha-item');
+            let somaGeral = 0;
+            linhas.forEach(linha => {
+                somaGeral += atualizarTotalLinha(linha);
+            });
+            document.getElementById('totalGeral').textContent = somaGeral.toFixed(2).replace('.', ',');
+        }
+
+        // Adiciona nova linha na tabela
+        function adicionarLinha() {
+            const tbody = document.getElementById('itensCorpo');
+            const novaLinha = document.createElement('tr');
+            novaLinha.className = 'linha-item';
+            novaLinha.innerHTML = `
+                <td class="item-descricao"><input type="text" placeholder="Ex.: Manutenção preventiva"></td>
+                <td class="item-qtd"><input type="number" class="qtd" min="0" step="1" value="1"></td>
+                <td class="item-valor"><input type="number" class="valor" min="0" step="0.01" value="0.00"></td>
+                <td class="item-total"><span class="total-linha">R$ 0,00</span></td>
+                <td><button class="btn-remover" onclick="removerLinha(this)">🗑️ Remover</button></td>
+            `;
+            tbody.appendChild(novaLinha);
+
+            // Adiciona eventos aos novos inputs
+            const qtdInput = novaLinha.querySelector('.qtd');
+            const valorInput = novaLinha.querySelector('.valor');
+
+            qtdInput.addEventListener('input', function() {
+                atualizarTotalLinha(novaLinha);
+                recalcularTodos();
+            });
+
+            valorInput.addEventListener('input', function() {
+                atualizarTotalLinha(novaLinha);
+                recalcularTodos();
+            });
+
+            // Foca na descrição
+            novaLinha.querySelector('.item-descricao input').focus();
+        }
+
+        // Remove uma linha (se for a última, apenas limpa os campos)
+        function removerLinha(botao) {
+            const linha = botao.closest('tr');
+            const tbody = document.getElementById('itensCorpo');
+            const linhas = tbody.querySelectorAll('.linha-item');
+
+            if (linhas.length === 1) {
+                // Se for a única linha, apenas limpa os campos
+                linha.querySelector('.item-descricao input').value = '';
+                linha.querySelector('.qtd').value = 1;
+                linha.querySelector('.valor').value = 0.00;
+                atualizarTotalLinha(linha);
+                recalcularTodos();
+            } else {
+                // Remove a linha
+                linha.remove();
+                recalcularTodos();
+            }
+        }
+
+        // Preview da foto
+        document.getElementById('foto').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('previewFoto');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('previewFoto').style.display = 'none';
+            }
+        });
+
+        // Inicialização: eventos para a primeira linha e recalcular
+        window.onload = function() {
+            const primeiraLinha = document.querySelector('.linha-item');
+            const qtdInicial = primeiraLinha.querySelector('.qtd');
+            const valorInicial = primeiraLinha.querySelector('.valor');
+
+            function atualizarInicial() {
+                atualizarTotalLinha(primeiraLinha);
+                recalcularTodos();
+            }
+
+            qtdInicial.addEventListener('input', atualizarInicial);
+            valorInicial.addEventListener('input', atualizarInicial);
+
+            // Executa uma vez para exibir os valores iniciais
+            atualizarInicial();
+
+            // Opcional: preencher data atual automaticamente
+            const hoje = new Date().toISOString().split('T')[0];
+            document.getElementById('dataExecucao').value = hoje;
+        };
+    </script>
+</body>
+</html>
