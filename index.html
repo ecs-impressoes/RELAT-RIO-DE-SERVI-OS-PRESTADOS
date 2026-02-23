@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório de Serviços</title>
+    <title>Relatório de Serviços (Colaboradores)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -15,7 +15,53 @@
             padding: 20px;
             display: flex;
             justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
         }
+        /* Tela de login */
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+            margin: auto;
+            text-align: center;
+        }
+        .login-container h2 {
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        .login-container input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .login-container button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            margin-top: 15px;
+            transition: background 0.2s;
+        }
+        .login-container button:hover {
+            background-color: #0056b3;
+        }
+        .login-container .erro {
+            color: #dc3545;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        /* Área principal (inicialmente oculta) */
         .container {
             max-width: 1000px;
             width: 100%;
@@ -23,13 +69,39 @@
             padding: 25px;
             border-radius: 8px;
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .container.visible {
+            display: block;
         }
         h1 {
             text-align: center;
             color: #333;
-            margin-bottom: 25px;
+            margin-bottom: 5px;
             border-bottom: 2px solid #007bff;
             padding-bottom: 10px;
+        }
+        .empresa-info {
+            background-color: #f0f8ff;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 5px solid #007bff;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .empresa-info strong {
+            color: #007bff;
+        }
+        .colab-logado {
+            text-align: right;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #555;
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
         }
         .info-geral {
             display: flex;
@@ -172,19 +244,39 @@
             color: #777;
         }
         @media print {
-            .btn, .arquivo-area input, .btn-remover, .acoes {
+            .btn, .arquivo-area input, .btn-remover, .acoes, .login-container {
                 display: none;
             }
             body { background: white; padding: 0; }
-            .container { box-shadow: none; padding: 10px; }
+            .container { box-shadow: none; padding: 10px; display: block !important; }
+            .empresa-info { background: none; border: 1px solid #ccc; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Tela de Login (sem dicas de senha) -->
+    <div id="loginDiv" class="login-container">
+        <h2>🔐 Acesso Colaboradores</h2>
+        <input type="text" id="loginUsuario" placeholder="Usuário" autocomplete="off">
+        <input type="password" id="loginSenha" placeholder="Senha">
+        <button onclick="fazerLogin()">Entrar</button>
+        <div id="loginErro" class="erro"></div>
+    </div>
+
+    <!-- Conteúdo principal (protegido) -->
+    <div id="app" class="container">
+        <!-- Informações da empresa fixas -->
+        <div class="empresa-info">
+            <strong>PIBBAWEB INFORMATICA</strong> | CNPJ: 13.419.451/0001-00<br>
+            Av. Brasil 284 - Jd. Casqueiro - Cubatão SP
+        </div>
+
+        <!-- Colaborador logado (será preenchido via JS) -->
+        <div class="colab-logado" id="colaboradorLogadoSpan">👤 Colaborador: <span id="nomeColaborador"></span></div>
+
         <h1>📋 RELATÓRIO DE SERVIÇOS PRESTADOS</h1>
 
-        <!-- Dados gerais -->
+        <!-- Dados gerais (campo colaborador já preenchido e desabilitado) -->
         <div class="info-geral">
             <div class="campo">
                 <label>Empresa / Cliente</label>
@@ -196,14 +288,14 @@
             </div>
             <div class="campo">
                 <label>Colaborador responsável</label>
-                <input type="text" id="colaborador" placeholder="Nome completo">
+                <input type="text" id="colaborador" placeholder="Nome completo" readonly>
             </div>
         </div>
 
-        <!-- Anexo de arquivo (qualquer formato) -->
+        <!-- Anexo de imagem (apenas JPG/PNG) -->
         <div class="arquivo-area">
-            <label for="anexo">📎 Anexar arquivo (foto, PDF, documento...)</label>
-            <input type="file" id="anexo" accept="*/*">
+            <label for="anexo">📎 Anexar imagem (JPG ou PNG)</label>
+            <input type="file" id="anexo" accept="image/jpeg, image/png">
             <br>
             <div id="previewContainer">
                 <img id="previewImagem" src="#" alt="Pré-visualização" style="display: none; max-width: 100%; max-height: 200px; margin-top: 10px;">
@@ -211,7 +303,7 @@
             </div>
         </div>
 
-        <!-- Tabela de serviços (valor unitário antes da quantidade) -->
+        <!-- Tabela de serviços -->
         <h3>🛠️ Itens / Serviços realizados</h3>
         <table id="tabelaServicos">
             <thead>
@@ -242,43 +334,91 @@
             </div>
         </div>
 
-        <!-- Total geral -->
         <div class="total-geral">
             <strong>Total geral: R$ <span id="totalGeral">0,00</span></strong>
         </div>
 
-        <!-- Descrição geral complementar -->
         <div class="campo">
-            <label>📝 Descrição complementar (o que foi feito, observações)</label>
-            <textarea id="descricaoGeral" placeholder="Detalhes adicionais sobre os serviços..."></textarea>
+            <label>📝 Descrição complementar</label>
+            <textarea id="descricaoGeral" placeholder="Detalhes adicionais..."></textarea>
         </div>
 
         <footer>
-            * Preencha todos os campos. Os valores totais são calculados automaticamente.
+            * Preencha os campos. O nome do colaborador é preenchido automaticamente.
         </footer>
     </div>
 
     <script>
-        // Função para formatar como moeda
+        // ----- Dados de login (simulado, não visíveis) -----
+        const usuariosValidos = {
+            'We': '@we2026',
+            'Pb': 'Pibbaweb2026@',
+            'Ec': '@ec2026'
+        };
+
+        let colaboradorAtual = ''; // armazena o usuário logado
+
+        function fazerLogin() {
+            const usuario = document.getElementById('loginUsuario').value.trim();
+            const senha = document.getElementById('loginSenha').value;
+            const erroDiv = document.getElementById('loginErro');
+
+            if (!usuario || !senha) {
+                erroDiv.textContent = 'Preencha usuário e senha.';
+                return;
+            }
+
+            // Validação (case-sensitive para o usuário)
+            if (usuariosValidos.hasOwnProperty(usuario) && usuariosValidos[usuario] === senha) {
+                colaboradorAtual = usuario;
+                // Esconde tela de login e mostra aplicação
+                document.getElementById('loginDiv').style.display = 'none';
+                const appDiv = document.getElementById('app');
+                appDiv.classList.add('visible');
+                
+                // Preenche campo colaborador e span com o nome do usuário logado
+                document.getElementById('colaborador').value = usuario;
+                document.getElementById('nomeColaborador').textContent = usuario;
+
+                // Inicializar a data no campo
+                const hoje = new Date().toISOString().split('T')[0];
+                document.getElementById('dataExecucao').value = hoje;
+
+                // Adicionar eventos de cálculo para a primeira linha
+                const primeiraLinha = document.querySelector('.linha-item');
+                if (primeiraLinha) {
+                    const valorInicial = primeiraLinha.querySelector('.valor');
+                    const qtdInicial = primeiraLinha.querySelector('.qtd');
+
+                    function atualizarInicial() {
+                        atualizarTotalLinha(primeiraLinha);
+                        recalcularTodos();
+                    }
+                    valorInicial.addEventListener('input', atualizarInicial);
+                    qtdInicial.addEventListener('input', atualizarInicial);
+                    atualizarInicial(); // para exibir valores iniciais
+                }
+            } else {
+                erroDiv.textContent = 'Usuário ou senha inválidos.';
+            }
+        }
+
+        // Funções de gerenciamento da tabela
         function formatarMoeda(valor) {
             return 'R$ ' + valor.toFixed(2).replace('.', ',');
         }
 
-        // Atualiza o total de uma linha específica
         function atualizarTotalLinha(linha) {
             const valorInput = linha.querySelector('.valor');
             const qtdInput = linha.querySelector('.qtd');
             const totalSpan = linha.querySelector('.total-linha');
-
             const valor = parseFloat(valorInput.value) || 0;
             const qtd = parseFloat(qtdInput.value) || 0;
             const total = valor * qtd;
-
             totalSpan.textContent = formatarMoeda(total);
             return total;
         }
 
-        // Recalcula todos os totais (usado após remoção/edição)
         function recalcularTodos() {
             const linhas = document.querySelectorAll('.linha-item');
             let somaGeral = 0;
@@ -288,7 +428,6 @@
             document.getElementById('totalGeral').textContent = somaGeral.toFixed(2).replace('.', ',');
         }
 
-        // Adiciona nova linha na tabela
         function adicionarLinha() {
             const tbody = document.getElementById('itensCorpo');
             const novaLinha = document.createElement('tr');
@@ -302,55 +441,43 @@
             `;
             tbody.appendChild(novaLinha);
 
-            // Adiciona eventos aos novos inputs
             const valorInput = novaLinha.querySelector('.valor');
             const qtdInput = novaLinha.querySelector('.qtd');
-
             valorInput.addEventListener('input', function() {
                 atualizarTotalLinha(novaLinha);
                 recalcularTodos();
             });
-
             qtdInput.addEventListener('input', function() {
                 atualizarTotalLinha(novaLinha);
                 recalcularTodos();
             });
-
-            // Foca na descrição
             novaLinha.querySelector('.item-descricao input').focus();
         }
 
-        // Remove uma linha (se for a última, apenas limpa os campos)
         function removerLinha(botao) {
             const linha = botao.closest('tr');
             const tbody = document.getElementById('itensCorpo');
             const linhas = tbody.querySelectorAll('.linha-item');
-
             if (linhas.length === 1) {
-                // Se for a única linha, apenas limpa os campos
                 linha.querySelector('.item-descricao input').value = '';
                 linha.querySelector('.valor').value = 0.00;
                 linha.querySelector('.qtd').value = 1;
                 atualizarTotalLinha(linha);
                 recalcularTodos();
             } else {
-                // Remove a linha
                 linha.remove();
                 recalcularTodos();
             }
         }
 
-        // Pré-visualização de arquivo (imagem ou nome)
+        // Pré-visualização de imagem (JPG/PNG)
         document.getElementById('anexo').addEventListener('change', function(event) {
             const file = event.target.files[0];
             const previewImg = document.getElementById('previewImagem');
             const nomeArquivo = document.getElementById('nomeArquivo');
             
             if (file) {
-                // Exibe o nome do arquivo
                 nomeArquivo.textContent = `Arquivo: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
-                
-                // Se for imagem, tenta preview
                 if (file.type.startsWith('image/')) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
@@ -367,74 +494,41 @@
             }
         });
 
-        // Função para enviar via WhatsApp
+        // Envio WhatsApp (inclui dados da empresa e colaborador logado)
         function enviarWhatsApp() {
-            // Coletar dados
             const empresa = document.getElementById('empresa').value || 'Não informado';
             const data = document.getElementById('dataExecucao').value || 'Não informada';
-            const colaborador = document.getElementById('colaborador').value || 'Não informado';
+            const colaborador = colaboradorAtual || 'Não informado';
             const descricao = document.getElementById('descricaoGeral').value || 'Sem observações';
             
-            // Montar lista de serviços
             const linhas = document.querySelectorAll('.linha-item');
             let servicosTexto = '';
             let totalGeral = 0;
-            
             linhas.forEach((linha, index) => {
                 const desc = linha.querySelector('.item-descricao input').value || 'Serviço sem descrição';
                 const valor = parseFloat(linha.querySelector('.valor').value) || 0;
                 const qtd = parseFloat(linha.querySelector('.qtd').value) || 0;
                 const total = valor * qtd;
                 totalGeral += total;
-                
-                servicosTexto += `\n${index+1}. ${desc} | Valor unit: R$ ${valor.toFixed(2)} | Qtd: ${qtd} | Total: R$ ${total.toFixed(2)}`;
+                servicosTexto += `\n${index+1}. ${desc} | R$ ${valor.toFixed(2)} | Qtd: ${qtd} | Total: R$ ${total.toFixed(2)}`;
             });
 
             const totalFormatado = totalGeral.toFixed(2).replace('.', ',');
-
-            // Montar mensagem
-            const mensagem = `📋 *RELATÓRIO DE SERVIÇOS* 📋
+            const mensagem = `📋 *RELATÓRIO PIBBAWEB INFORMATICA* 📋
+CNPJ: 13.419.451/0001-00 | Av. Brasil 284 - Jd. Casqueiro - Cubatão SP
+Colaborador: ${colaborador}
 Empresa: ${empresa}
 Data: ${data}
-Colaborador: ${colaborador}
 
 *Serviços realizados:*${servicosTexto}
 
 *Total Geral: R$ ${totalFormatado}*
 
-*Observações:* ${descricao}
+*Observações:* ${descricao}`;
 
-(Relatório gerado via sistema)`;
-
-            // Codificar para URL
             const textoCodificado = encodeURIComponent(mensagem);
-            
-            // Número padrão (substitua pelo número desejado ou deixe vazio)
-            // Para abrir sem número definido, use "api.whatsapp.com/send?text="
             window.open(`https://api.whatsapp.com/send?text=${textoCodificado}`, '_blank');
         }
-
-        // Inicialização: eventos para a primeira linha e recalcular
-        window.onload = function() {
-            const primeiraLinha = document.querySelector('.linha-item');
-            const valorInicial = primeiraLinha.querySelector('.valor');
-            const qtdInicial = primeiraLinha.querySelector('.qtd');
-
-            function atualizarInicial() {
-                atualizarTotalLinha(primeiraLinha);
-                recalcularTodos();
-            }
-
-            valorInicial.addEventListener('input', atualizarInicial);
-            qtdInicial.addEventListener('input', atualizarInicial);
-
-            // Executa uma vez para exibir os valores iniciais
-            atualizarInicial();
-
-            // Opcional: preencher data atual automaticamente
-            const hoje = new Date().toISOString().split('T')[0];
-            document.getElementById('dataExecucao').value = hoje;
-        };
     </script>
 </body>
 </html>
