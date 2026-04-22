@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Pibbaweb - Relatório Técnico / Nota Fiscal de Serviços</title>
+    <title>Pibbaweb - Nota de Serviços</title>
     <style>
         * {
             box-sizing: border-box;
@@ -247,7 +247,7 @@
             border-top: 1px solid #dce5ec;
             padding-top: 15px;
         }
-        /* ========== ESTILO ESPECIAL PARA IMPRESSÃO (NOTA FISCAL) ========== */
+        /* ========== ESTILO ESPECIAL PARA IMPRESSÃO (NOTA DE SERVIÇOS COM LOGO) ========== */
         @media print {
             /* Ocultar elementos de controle e login */
             .login-container, .btn, .btn-remover, .acoes, .arquivo-area,
@@ -285,14 +285,12 @@
                 -webkit-appearance: none;
                 appearance: none;
             }
-            /* campos específicos para centralizar valores na tabela */
             .item-valor input, .item-qtd input {
                 text-align: center !important;
             }
             .item-total span {
                 font-weight: bold;
             }
-            /* garantir que as células da tabela tenham borda e aspecto fiscal */
             table, th, td {
                 border: 1px solid #222 !important;
                 border-collapse: collapse;
@@ -306,29 +304,53 @@
             td {
                 padding: 6px 8px !important;
             }
-            /* Esconder o cabeçalho de "relatório" e exibir cabeçalho de nota fiscal */
             h1 {
                 display: none;
             }
             .sub-nota {
                 display: none;
             }
-            /* Novo cabeçalho fiscal via pseudo-elemento ou elemento oculto */
-            .nota-fiscal-header-print {
+            /* Cabeçalho da NOTA DE SERVIÇOS com logo */
+            .nota-servicos-header-print {
                 display: block !important;
                 text-align: center;
-                margin-bottom: 20px;
-                border-bottom: 2px solid #000;
-                padding-bottom: 8px;
+                margin-bottom: 25px;
+                border-bottom: 2px solid #0f6b3a;
+                padding-bottom: 12px;
             }
-            .nota-fiscal-header-print h2 {
-                font-size: 20pt;
+            .logo-container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 15px;
+                margin-bottom: 8px;
+                flex-wrap: wrap;
+            }
+            .logo-img {
+                width: 70px;
+                height: 70px;
+                background: #eef3f0;
+                border-radius: 50%;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 2rem;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .logo-img svg {
+                width: 55px;
+                height: 55px;
+            }
+            .titulo-nota h2 {
+                font-size: 24pt;
                 margin: 0;
-                letter-spacing: 1px;
+                color: #1a4d6b;
+                letter-spacing: -0.5px;
             }
-            .nota-fiscal-header-print p {
+            .titulo-nota p {
                 font-size: 9pt;
-                margin: 4px 0;
+                margin: 4px 0 0;
+                color: #2c5a74;
             }
             .info-geral {
                 background: none;
@@ -355,7 +377,6 @@
                 font-size: 14pt;
                 margin-top: 20px;
             }
-            /* garantir que a descrição complementar apareça como texto */
             #descricaoGeral {
                 border: none;
                 background: transparent;
@@ -363,27 +384,26 @@
                 margin-top: 5px;
                 white-space: pre-wrap;
             }
-            /* remover setas de input number */
             input[type="number"]::-webkit-inner-spin-button,
             input[type="number"]::-webkit-outer-spin-button {
                 display: none;
             }
-            /* quebra de página controlada */
             tr {
                 page-break-inside: avoid;
             }
             .container.visible {
                 padding: 0;
             }
-            /* Número da nota fiscal (gerado dinamicamente via JS antes da impressão) */
             .nf-number {
-                font-size: 10pt;
+                font-size: 9pt;
                 text-align: right;
-                margin-bottom: 8px;
+                margin-top: 8px;
                 font-weight: normal;
+                border-top: 1px dashed #ccc;
+                padding-top: 6px;
             }
         }
-        /* elemento que só aparece na impressão (Nota Fiscal) */
+        /* elemento que só aparece na impressão (Nota de Serviços) */
         .print-only-nf {
             display: none;
         }
@@ -392,7 +412,6 @@
                 display: block;
             }
         }
-        /* ajustes gerais */
         .btn:hover {
             filter: brightness(0.95);
         }
@@ -425,15 +444,28 @@
     <div class="colab-logado" id="colaboradorLogadoSpan">👤 Colaborador: <span id="nomeColaborador"></span></div>
 
     <!-- TÍTULO PADRÃO DO SISTEMA (será substituído visualmente na impressão) -->
-    <h1>📋 RELATÓRIO DE SERVIÇOS</h1>
-    <div class="sub-nota">* Preencha os dados e utilize os botões para envio ou impressão fiscal *</div>
+    <h1>📋 NOTA DE SERVIÇOS</h1>
+    <div class="sub-nota">* Preencha os dados e utilize os botões para envio ou impressão da Nota de Serviços *</div>
 
-    <!-- ELEMENTO OCULTO QUE APARECE APENAS NA IMPRESSÃO COMO NOTA FISCAL -->
-    <div class="print-only-nf nota-fiscal-header-print">
-        <h2>NOTA FISCAL DE SERVIÇOS</h2>
-        <p>NFS-e Eletrônica · Documento Auxiliar</p>
-        <div class="nf-number" id="nfNumeroPrint">NF Nº 0000/2025</div>
-        <p style="font-size:8pt;">Emitido por sistema Pibbaweb · Autorização de impressão válida</p>
+    <!-- ELEMENTO OCULTO QUE APARECE APENAS NA IMPRESSÃO COMO NOTA DE SERVIÇOS COM LOGO -->
+    <div class="print-only-nf nota-servicos-header-print">
+        <div class="logo-container">
+            <!-- LOGO PERSONALIZADO (imagem SVG + nome da empresa) -->
+            <div class="logo-img">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="55" height="55">
+                    <circle cx="50" cy="50" r="46" fill="#0f6b3a" stroke="#1a4d6b" stroke-width="2"/>
+                    <text x="50" y="68" font-size="32" text-anchor="middle" fill="white" font-weight="bold" font-family="Arial">PW</text>
+                    <path d="M30 35 L70 35 L70 40 L30 40 Z" fill="#FFD966"/>
+                    <path d="M35 48 L65 48 L65 53 L35 53 Z" fill="#FFD966"/>
+                    <path d="M42 61 L58 61 L58 66 L42 66 Z" fill="#FFD966"/>
+                </svg>
+            </div>
+            <div class="titulo-nota">
+                <h2>NOTA DE SERVIÇOS</h2>
+                <p>Pibbaweb Informática · Documento de Prestação</p>
+            </div>
+        </div>
+        <div class="nf-number" id="nfNumeroPrint">Nº automático emitido pelo sistema</div>
     </div>
 
     <!-- DADOS DO CLIENTE / SERVIÇO -->
@@ -452,7 +484,7 @@
         </div>
     </div>
 
-    <!-- Área de anexo (imagem apenas para referência, não vai no PDF fiscal) -->
+    <!-- Área de anexo (imagem apenas para referência, não vai no PDF) -->
     <div class="arquivo-area">
         <label for="anexo">📎 Anexar comprovante (JPG/PNG) - uso interno</label>
         <input type="file" id="anexo" accept="image/jpeg, image/png">
@@ -483,7 +515,7 @@
         <button class="btn" onclick="adicionarLinha()">➕ Adicionar serviço</button>
         <div style="display: flex; gap: 12px;">
             <button class="btn btn-whatsapp" onclick="enviarWhatsApp()">📲 Enviar WhatsApp</button>
-            <button class="btn btn-imprimir" onclick="gerarPDFNotaFiscal()">🖨️ Gerar Nota Fiscal / PDF</button>
+            <button class="btn btn-imprimir" onclick="gerarPDFNotaServicos()">🖨️ Gerar Nota de Serviços / PDF</button>
         </div>
     </div>
 
@@ -492,17 +524,17 @@
     </div>
 
     <div class="campo" style="margin-top: 12px;">
-        <label>📝 Informações complementares / Observações fiscais</label>
+        <label>📝 Informações complementares / Observações</label>
         <textarea id="descricaoGeral" placeholder="Detalhes adicionais, garantia, condições de pagamento..."></textarea>
     </div>
 
     <footer>
-        * Nota fiscal emitida em conformidade com os serviços prestados. O colaborador logado é responsável pelas informações.
+        * Nota de serviços emitida em conformidade com os serviços prestados. O colaborador logado é responsável pelas informações.
     </footer>
 </div>
 
 <script>
-    // ---------- CREDENCIAIS VÁLIDAS (conforme original) ----------
+    // ---------- CREDENCIAIS VÁLIDAS ----------
     const usuariosValidos = {
         'We': '@we2026',
         'Pb': 'Pibbaweb2026@',
@@ -538,7 +570,6 @@
         }
     }
 
-    // configura eventos de cálculo
     function configurarEventosLinha(linha) {
         const valorInput = linha.querySelector('.valor');
         const qtdInput = linha.querySelector('.qtd');
@@ -624,26 +655,24 @@
         }
     });
 
-    // Geração de PDF com aspecto de NOTA FISCAL (estilo via print aprimorado)
-    function gerarPDFNotaFiscal() {
-        // 1) Gerar número único de Nota Fiscal para impressão (baseado timestamp + colaborador)
+    // Geração de PDF com layout de NOTA DE SERVIÇOS (inclui logo)
+    function gerarPDFNotaServicos() {
+        // Gerar número único e identificador para a nota
         const hoje = new Date();
         const ano = hoje.getFullYear();
         const seq = Math.floor(Math.random() * 9000 + 1000);
-        const numeroNF = `NF-SE ${seq}/${ano}`;
-        // armazena no elemento que só aparece na impressão
+        const numeroNF = `NS-${seq}/${ano}`;
         const nfSpan = document.getElementById('nfNumeroPrint');
-        if (nfSpan) nfSpan.innerText = `${numeroNF} - Emissão: ${hoje.toLocaleDateString()}`;
+        if (nfSpan) nfSpan.innerText = `Nº ${numeroNF} · Emissão: ${hoje.toLocaleDateString('pt-BR')}`;
         
-        // 2) pequena garantia de que os inputs estejam com valores visíveis corretos (cálculo já ok)
+        // Garantir que os totais estejam atualizados
         recalcularTodos();
         
-        // 3) Disparar impressão (que aplicará @media print e gerará PDF com aspecto fiscal)
-        // A dica: antes de imprimir, adicionamos uma classe temporária para garantir formatação extra
+        // Disparar a impressão que usará @media print com o logo e título "NOTA DE SERVIÇOS"
         window.print();
     }
 
-    // Envio WhatsApp com layout resumido, mas sem perder dados
+    // Envio WhatsApp com layout profissional
     function enviarWhatsApp() {
         const empresa = document.getElementById('empresa').value || 'Não informado';
         const data = document.getElementById('dataExecucao').value || '---';
@@ -661,26 +690,26 @@
             itensTexto += `\n${idx+1}. ${desc} | R$ ${valor.toFixed(2)} | Qtd: ${qtd} | Subtotal: R$ ${totalItem.toFixed(2)}`;
         });
         const totalFormat = totalGeralCalc.toFixed(2).replace('.', ',');
-        const mensagem = `🏷️ *PIBBAWEB INFORMATICA - SERVIÇOS*
+        const mensagem = `📄 *PIBBAWEB INFORMATICA - NOTA DE SERVIÇOS*
 CNPJ: 13.419.451/0001-00
-End: Av. Brasil 284 - Cubatão/SP
+Av. Brasil 284 - Cubatão/SP
 
 👤 Técnico: ${colaborador}
 🏢 Cliente: ${empresa}
 📅 Data: ${data}
 
-*ITENS EXECUTADOS:*${itensTexto}
+*SERVIÇOS REALIZADOS:*${itensTexto}
 
 💵 *VALOR TOTAL: R$ ${totalFormat}*
 
 📝 Obs.: ${observacao}
 
-🔹 Documento de prestação de serviços.`;
+🔹 Documento de prestação de serviços - Nota de Serviços Pibbaweb.`;
         const encoded = encodeURIComponent(mensagem);
         window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
     }
 
-    // Inicializar caso haja linha padrão já com eventos
+    // Inicializar
     window.onload = () => {
         const linhaExistente = document.querySelector('.linha-item');
         if (linhaExistente) {
@@ -693,7 +722,6 @@ End: Av. Brasil 284 - Cubatão/SP
             atualizarTotalLinha(linhaExistente);
             recalcularTodos();
         }
-        // preencher data atual para visual
         if(!document.getElementById('dataExecucao').value) {
             const hoje = new Date().toISOString().split('T')[0];
             document.getElementById('dataExecucao').value = hoje;
